@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 include_once '../config/database.php';
 include_once '../models/Product.php';
+include_once '../helpers/auth.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -144,7 +145,16 @@ switch($method) {
         break;
 
     case 'POST':
-        // Create product
+        // Create product - Admin only
+        $headers = getallheaders();
+        $adminId = validateAdminToken($headers);
+        
+        if(!$adminId) {
+            http_response_code(401);
+            echo json_encode(array("message" => "Admin access required."));
+            break;
+        }
+        
         $data = json_decode(file_get_contents("php://input"));
 
         if(!empty($data->name) && !empty($data->price) && !empty($data->category_id)) {
@@ -169,7 +179,16 @@ switch($method) {
         break;
 
     case 'PUT':
-        // Update product
+        // Update product - Admin only
+        $headers = getallheaders();
+        $adminId = validateAdminToken($headers);
+        
+        if(!$adminId) {
+            http_response_code(401);
+            echo json_encode(array("message" => "Admin access required."));
+            break;
+        }
+        
         $data = json_decode(file_get_contents("php://input"));
 
         if(!empty($data->id) && !empty($data->name) && !empty($data->price)) {
@@ -195,6 +214,16 @@ switch($method) {
         break;
 
     case 'DELETE':
+        // Delete product - Admin only
+        $headers = getallheaders();
+        $adminId = validateAdminToken($headers);
+        
+        if(!$adminId) {
+            http_response_code(401);
+            echo json_encode(array("message" => "Admin access required."));
+            break;
+        }
+        
         if(isset($_GET['id'])) {
             $product->id = $_GET['id'];
 
