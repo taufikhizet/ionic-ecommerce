@@ -22,10 +22,16 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if($method == 'POST') {
     $data = json_decode(file_get_contents("php://input"));
+    
+    // Debug logging
+    error_log("Login attempt: " . print_r($data, true));
 
     if(!empty($data->email) && !empty($data->password)) {
         $user->email = $data->email;
         $user->password = $data->password;
+        
+        // Debug check if user exists
+        error_log("Checking login for email: " . $data->email);
 
         if($user->login()) {
             // Generate simple token (in production, use JWT)
@@ -43,12 +49,13 @@ if($method == 'POST') {
                 "token" => $token
             ));
         } else {
+            error_log("Login failed for email: " . $data->email);
             http_response_code(401);
             echo json_encode(array("message" => "Invalid email or password."));
         }
     } else {
         http_response_code(400);
-        echo json_encode(array("message" => "Unable to login. Data is incomplete."));
+        echo json_encode(array("message" => "Email and password are required."));
     }
 } else {
     http_response_code(405);
